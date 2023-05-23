@@ -6,6 +6,101 @@ use Exception;
 
 class Employee
 {
+    protected $empName;
+    protected $deptName;
+    protected $empGender;
+    protected $empBirthdate;
+    protected $empTitle;
+
+    public function getEmpName()
+    {
+        return $this->first_name." ".$this->last_name;
+    }
+
+    public function getGender()
+    {
+        return $this->gender;
+    }
+
+    public function getBirthdate()
+    {
+        return $this->birth_date;
+    }
+
+    public function getDeptName()
+    {
+        return $this->dept_name;
+    }
+
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+     public static function getByDeptId($id)
+    {
+        global $conn;
+        try {
+            $sql = "
+                SELECT * FROM departments
+                WHERE dept_no=:id
+                LIMIT 1
+            ";
+            $statement = $conn->prepare($sql);
+            $statement->execute([
+                'id' => $id
+            ]);
+            $result = $statement->fetchObject('App\Employee');
+            return $result;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+        }
+
+        return null;
+    }
+
+     public static function getByEmpId($id)
+    {
+        global $conn;
+        try {
+            $sql = "
+                SELECT * FROM employees
+                WHERE emp_no=:id
+                LIMIT 1
+            ";
+            $statement = $conn->prepare($sql);
+            $statement->execute([
+                'id' => $id
+            ]);
+            $result = $statement->fetchObject('App\Employee');
+            return $result;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+        }
+
+        return null;
+    }
+
+     public static function getByTitleId($id)
+    {
+        global $conn;
+        try {
+            $sql = "
+                SELECT * FROM titles
+                WHERE emp_no=:id
+                LIMIT 1
+            ";
+            $statement = $conn->prepare($sql);
+            $statement->execute([
+                'id' => $id
+            ]);
+            $result = $statement->fetchObject('App\Employee');
+            return $result;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+        }
+        return null;
+    }
     public static function list()
     {
         global $conn;
@@ -35,8 +130,42 @@ class Employee
         );
         ";
 
+        $statement = $conn->prepare($sql);
+            $statement->execute([
+                'id' => $dept
+            ]);
+            $records = [];
+
+            while ($row = $statement->fetchObject('App\Employee')) {
+                array_push($records, $row);
+            }
+
+            return $records;
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+        }
+
+        return null;
+    }
+
+
+        public static function historylist($emp)
+    {
+        global $conn;
+
+        try {
+            $sql = '
+            SELECT from_date, IF(to_date="9999-01-01", "Current", to_date) to_date, FORMAT(salary, "C") salary
+            FROM salaries
+            WHERE emp_no = :emp
+            ORDER BY to_date DESC
+            ;
+                   ';
+
             $statement = $conn->prepare($sql);
-            $statement->execute();
+            $statement->execute([
+                'emp' => $emp
+            ]);
             $records = [];
 
             while ($row = $statement->fetchObject('App\Employee')) {
